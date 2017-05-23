@@ -53,8 +53,10 @@ int main()
 
 
 	PID pid;
+	
+	//
+	// Initialize the pid variable
 	pid.Init(0.14, 0.00008, 1.1);
-  // TODO: Initialize the pid variable.
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -78,35 +80,36 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
-					//
-					// Update the error according to the cte
-					pid.UpdateError(cte);
-					
-					//
-					// Write the steer_value according to the pid total error. The cte "wanted value" is 0.0 
-					steer_value = 0.0 - pid.TotalError();
+          
+		  //
+          // Update the error according to the cte
+          pid.UpdateError(cte);
 
-					//
-					// Hard limit the steer value to [-1, 1]
-					if (steer_value > 1.0) {
-						steer_value = 1.0;
-					}
-					else if (steer_value < -1.0) {
-						steer_value = -1.0;
-					}
-					
-					//
-					// set the throttle value. On big error magnitude we want to slow down (see point (6))
-					double throttle_value;
-					if ((cte > 0.8) || (cte < -0.8)) {        // high error magnitude
-						throttle_value = 0.05;  
-					}
-					else if ((cte > 0.3) || (cte < -0.3)) {   // mid error magnitude
-						throttle_value = 0.1; 
-					}
-					else{                                     // low error magnitude
-						throttle_value = 0.2;
-					}
+          //
+          // Write the steer_value according to the pid total error. The cte "wanted value" is 0.0 
+          steer_value = 0.0 - pid.TotalError();
+          
+          //
+          // Hard limit the steer value to [-1, 1]
+          if (steer_value > 1.0) {
+          	steer_value = 1.0;
+          }
+          else if (steer_value < -1.0) {
+          	steer_value = -1.0;
+          }
+          
+          //
+          // set the throttle value. On big error magnitude we want to slow down (see point (6))
+          double throttle_value;
+          if ((cte > 0.8) || (cte < -0.8)) {        // high error magnitude
+          	throttle_value = 0.05;  
+          }
+          else if ((cte > 0.3) || (cte < -0.3)) {   // mid error magnitude
+          	throttle_value = 0.1; 
+          }
+          else{                                     // low error magnitude
+          	throttle_value = 0.2;
+          }
 
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
 
