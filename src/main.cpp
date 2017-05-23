@@ -28,11 +28,32 @@ std::string hasData(std::string s) {
   return "";
 }
 
+/*
+#######################################   Describe the effect each components & how the final hyperparameters were chosen:  #######################################
+
+1) I started it very low Kp (~0.01) and I set Ki nand Kd to zero.
+2) I saw that the car didn't react fast enough to the curves on the road.
+3) I increased Kp (~0.1), to react faster to the curves. Kp effects how quickly we react.
+4) The car started to oscillate and was unstable.
+5) I put small value to Ki (~0.0001), and a larger one to Kd (~1). Kd can help as fight the oscillations and Ki helps us to close a error from a drift but can cause overshoot.
+6) I decreased the throttle value (in order to decreased the speed) when there was a big error magnitude (=fabs(cte)).
+	- This is like a human driver would do - when there is a sharp turn or when we start to lose control of the car we decreased our speed).
+7) I saw that the car still hit the lane line on the sharp turns so I increased Kp a little more.
+8) in order to reduce the oscillations, so the car will drive smoothly (not just not touching the lane lines) I played some more with Ki and Kd and the throttle value.
+Below you can see my final values:
+	* PID: Kp=0.14, Ki=0.00008, Kd=1.1
+	* Throttle: low error=0.2, mid error=0.1, large error=0.05
+
+######################################################################################################################################################################
+*/
+
 int main()
 {
   uWS::Hub h;
 
-  PID pid;
+
+	PID pid;
+	pid.Init(0.14, 0.00008, 1.1);
   // TODO: Initialize the pid variable.
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
@@ -57,13 +78,41 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
-          
-          // DEBUG
+					//
+					// Update the error according to the cte
+					pid.UpdateError(cte);
+					
+					//
+					// Write the steer_value according to the pid total error. The cte "wanted value" is 0.0 
+					steer_value = 0.0 - pid.TotalError();
+
+					//
+					// Hard limit the steer value to [-1, 1]
+					if (steer_value > 1.0) {
+						steer_value = 1.0;
+					}
+					else if (steer_value < -1.0) {
+						steer_value = -1.0;
+					}
+					
+					//
+					// set the throttle value. On big error magnitude we want to slow down (see point (6))
+					double throttle_value;
+					if ((cte > 0.8) || (cte < -0.8)) {        // high error magnitude
+						throttle_value = 0.05;  
+					}
+					else if ((cte > 0.3) || (cte < -0.3)) {   // mid error magnitude
+						throttle_value = 0.1; 
+					}
+					else{                                     // low error magnitude
+						throttle_value = 0.2;
+					}
+
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
+					msgJson["throttle"] = throttle_value;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
