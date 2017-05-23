@@ -41,7 +41,7 @@ std::string hasData(std::string s) {
 7) I saw that the car still hit the lane line on the sharp turns so I increased Kp a little more.
 8) in order to reduce the oscillations, so the car will drive smoothly (not just not touching the lane lines) I played some more with Ki and Kd and the throttle value.
 Below you can see my final values:
-	* PID: Kp=0.14, Ki=0.00008, Kd=1.1
+	* PID: Kp=0.17, Ki=0.00008, Kd=1.1
 	* Throttle: low error=0.2, mid error=0.1, large error=0.05
 
 ######################################################################################################################################################################
@@ -56,7 +56,7 @@ int main()
 	
 	//
 	// Initialize the pid variable
-	pid.Init(0.14, 0.00008, 1.1);
+	pid.Init(0.17, 0.00008, 1.1);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
